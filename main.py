@@ -113,11 +113,11 @@ if __name__ == '__main__':
     # Pearson Correlation
     df_analyze = pd.DataFrame(trump_avocado_list,
                               columns=['price', 'std_score', 'max_score', 'min_score', 'avg_score', 'count']).fillna(0)
-    corr_p = stats.pearsonr(df_analyze['price'],df_analyze['avg_score'])
+    corr_p = stats.pearsonr(df_analyze['price'], df_analyze['avg_score'])
     print('STATS | PEARSON R')
     print(corr_p)
 
-    corr_s = stats.spearmanr(df_analyze['price'],df_analyze['avg_score'])
+    corr_s = stats.spearmanr(df_analyze['price'], df_analyze['avg_score'])
     print('STATS | SPEARMAN')
     print(corr_s)
 
@@ -143,11 +143,9 @@ if __name__ == '__main__':
     plt.ylabel('Avg. Score')
     plt.show()
 
-    # Covarianz
-    covariance_avg = np.cov(df_analyze['price'], df_analyze['avg_score'])
-    print('STATS | COVARIANZ')
-    print(covariance_avg)
+    # Cramers V
+    cramers_v = SharedUtils.cramers_v(df_analyze['price'], df_analyze['avg_score'])
 
-
+    print(cramers_v)
 
     exit()

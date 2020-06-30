@@ -1,7 +1,9 @@
 from pathlib import Path
 import pandas as pd
 import math
+import numpy as np
 from datetime import timedelta
+from scipy import stats
 
 
 class SharedUtils:
@@ -47,3 +49,15 @@ class SharedUtils:
             min_value = df[feature_name].min()
             result[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
         return result
+
+    @staticmethod
+    def cramers_v(x, y):
+        confusion_matrix = pd.crosstab(x, y)
+        chi2 = stats.chi2_contingency(confusion_matrix)[0]
+        n = confusion_matrix.sum().sum()
+        phi2 = chi2 / n
+        r, k = confusion_matrix.shape
+        phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
+        rcorr = r - ((r - 1) ** 2) / (n - 1)
+        kcorr = k - ((k - 1) ** 2) / (n - 1)
+        return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
