@@ -1,6 +1,8 @@
 from shared import SharedUtils
 import matplotlib.pyplot as plt
 import csv
+import statistics
+import pandas as pd
 
 
 class AvocadoPrice:
@@ -8,8 +10,8 @@ class AvocadoPrice:
     def __init__(self, folder='./data'):
         self.folder = folder
 
-    def load_data(self, filename):
-        data = SharedUtils.load_csv(self.folder, filename, 0, 0)
+    def load_data(self, filename, delimiter=","):
+        data = SharedUtils.load_csv(self.folder, filename, 0, 0, delimiter)
 
         return data
 
@@ -47,3 +49,53 @@ class AvocadoPrice:
     @staticmethod
     def _avg_price_by_date(df, date):
         return df[df['Date'] == date.strftime('%Y-%m-%d')]['AveragePrice'].mean()
+
+    def get_stats_week(self):
+
+        # Load the minimized file
+        df = self.load_data('avocado_price_week.csv', delimiter=";")
+
+        # Get lowest price
+        price_min = min(df['price'])
+        date_min = df[df['price'] == price_min].index[0]
+
+        # Get highest price
+        price_max = max(df['price'])
+        date_max = df[df['price'] == price_max].index[0]
+
+        # Standard Deviation
+        std = statistics.stdev(df['price'])
+
+        # Median Price
+        median = statistics.median(df['price'])
+
+        # avg. Price
+        avg = statistics.mean(df['price'])
+
+        # Get highest raise and fall
+        last_week = 0
+        highest_gain = 0
+        highest_gain_date = None
+        highest_loss = 0
+        highest_loss_date = None
+        for row in df.iterrows():
+            this_week = row[1]['price']
+            if 0 < last_week < this_week:
+
+                gain = (this_week - last_week) / last_week * 100
+
+                if gain > highest_gain:
+                    highest_gain_date = row[0]
+                    highest_gain = gain
+
+            if last_week > 0 and this_week < last_week:
+
+                loss = (this_week - last_week) / last_week * 100
+
+                if loss < highest_loss:
+                    highest_loss_date = row[0]
+                    highest_loss = loss
+
+            last_week = this_week
+
+        return df, price_min, date_min, price_max, date_max, std, median, avg, highest_gain, highest_gain_date, highest_loss, highest_loss_date

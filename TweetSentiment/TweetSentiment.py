@@ -5,11 +5,15 @@ import numpy as np
 import nltk
 from nltk.corpus import stopwords
 from shared import SharedUtils
+import statistics
 
 
 class TweetSentiment:
 
     def __init__(self, folder='./data'):
+
+        # Download Stopwords
+        nltk.download('stopwords')
 
         self.folder = folder
         self.stop_words = stopwords.words("english")
@@ -17,15 +21,12 @@ class TweetSentiment:
         self.negative_words_list = []
         self.positive_words_list = []
 
-        # Download Stopwords
-        nltk.download('stopwords')
-
         # Load the Word Lists
         self._load_words()
 
     def load_clean_data(self, filename):
         data = SharedUtils.load_csv(self.folder, filename, 0)
-        data = data[['text', 'is_retweet', 'created_at']]
+        data = data[['text', 'is_retweet', 'created_at', 'id_str']]
 
         # Split the dates
         date_format = "%m-%d-%Y %H:%M:%S"
@@ -54,11 +55,23 @@ class TweetSentiment:
 
         return data, retweet_values, sentiment_values
 
+    @staticmethod
+    def get_stats(df):
+
+        highest_score = max(df['score'])
+        lowest_score = min(df['score'])
+        median_score = statistics.median(df['score'])
+        mean_score = statistics.mean(df['score'])
+        std = statistics.stdev(df['score'])
+
+        return highest_score, lowest_score, median_score, mean_score, std
+
     def plot_pct(self, values, title):
         plt.style.use('ggplot')
 
         plt.figure(figsize=(7, 6))
-        values.plot.pie(autopct=lambda pct: self.format_plot_labels(pct, values), wedgeprops={"linewidth": 1, "edgecolor": "k"}, shadow=False, fontsize=15,
+        values.plot.pie(autopct=lambda pct: self.format_plot_labels(pct, values),
+                        wedgeprops={"linewidth": 1, "edgecolor": "k"}, shadow=False, fontsize=15,
                         startangle=170, colors=["#689F38", "#BDBDBD", "#ff1744"])
         plt.ylabel("")
         plt.title(title)
@@ -104,8 +117,9 @@ class TweetSentiment:
 
         mean = data["score"].mean()
         std = data["score"].std()
+        amount = len(data["score"])
 
-        return sentiment, mean, std, score_max_week, score_min_week, peak_sentiment_week
+        return sentiment, mean, std, score_max_week, score_min_week, peak_sentiment_week, amount
 
     def _load_words(self):
         # Load positive Word List
